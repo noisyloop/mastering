@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastering — Browser Audio Mastering Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+  <div class="app-container web-version">
+    <!-- Header Row -->
+    <header class="app-header">
+      <div class="logo">
+        <div class="logo-mark" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M3 12h2l2-7 3 14 3-10 2 5 2-2h4" />
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">mastering</span>
+          <span class="logo-subtitle">in-browser mastering studio</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="checklist-mini">
+          <div class="check-item" id="mini-format"><span>●</span> WAV Ready</div>
+        </div>
+        <label class="tips-toggle">
+          <input type="checkbox" id="showTips" checked>
+          <span>Tips</span>
+        </label>
+        <div class="header-export">
+          <div class="progress-container hidden" id="progressContainer">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span id="progressText">0%</span>
+            <button id="cancelBtn" class="btn-cancel">Cancel</button>
+          </div>
+          <button id="processBtn" class="btn-process" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export WAV
+          </button>
+          <div class="info-wrapper">
+            <button class="btn-info" id="infoBtn" aria-label="About">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </button>
+            <div class="info-panel">
+              <div class="info-panel-title">About</div>
+              <div class="info-panel-content">
+                All processing runs locally in your browser — nothing is uploaded.
+                <br><br>
+                Based on <a href="https://github.com/entrepeneur4lyf/Web-Audio-Mastering" target="_blank">Web Audio
+                  Mastering</a>,
+                originally <a href="https://github.com/SUP3RMASS1VE/Suno-Song-Remaster"
+                  target="_blank">Suno-Song-Remaster</a>.
+                <br><span class="info-license">Licensed under ISC</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Landing hero copy (visible until a file is loaded) -->
+      <div class="landing-hero" id="landingHero">
+        <h1>Master your track.<br><span class="hero-accent">Right here, right now.</span></h1>
+        <p class="hero-sub">Streaming-ready masters in your browser. Free, private and instant —
+          your audio never leaves your device.</p>
+      </div>
+
+      <!-- File Drop Zone -->
+      <div class="file-zone" id="dropZone">
+        <div class="file-zone-content" id="fileZoneContent">
+          <div class="drop-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </div>
+          <p>Drag &amp; drop your track anywhere</p>
+          <button id="selectFile" class="btn-select">Choose a file</button>
+          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.flac,.aac,.m4a,.mp4" hidden>
+          <span class="file-types">MP3 · WAV · FLAC · AAC · M4A · MP4</span>
+        </div>
+        <div class="file-loaded hidden" id="fileLoaded">
+          <div class="file-header">
+            <div class="file-info-row">
+              <span class="file-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </span>
+              <div class="file-details">
+                <span class="file-name" id="fileName">No file</span>
+                <span class="file-meta" id="fileMeta">--</span>
+                <span class="dc-offset-badge hidden" id="dcOffsetBadge"
+                  title="DC offset was detected and removed">DC Fixed</span>
+              </div>
+              <button id="changeFile" class="btn-change">Change track</button>
+            </div>
+          </div>
+          <div class="audio-player">
+            <div class="waveform-stack" id="waveformStack">
+              <div id="waveform" class="waveform-container"></div>
+              <div class="waveform-legend">
+                <span class="legend-item legend-original"><i></i> Original</span>
+                <span class="legend-item legend-master"><i></i> Master</span>
+              </div>
+            </div>
+            <input type="range" id="seekBar" class="seek-bar hidden" min="0" max="100" value="0">
+            <div class="transport-row">
+              <button id="playBtn" class="transport-btn" disabled title="Play/Pause (Space)">
+                <span id="playIcon" class="icon-play">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path d="M6 4a1 1 0 0 1 1.5-.86l12 7a1 1 0 0 1 0 1.72l-12 7A1 1 0 0 1 6 18V4z" />
+                  </svg>
+                </span>
+                <span id="pauseIcon" class="icon-pause" style="display:none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <rect x="5" y="4" width="5" height="16" rx="1" />
+                    <rect x="14" y="4" width="5" height="16" rx="1" />
+                  </svg>
+                </span>
+              </button>
+              <button id="stopBtn" class="transport-btn" disabled title="Stop (S)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <rect width="16" height="16" x="4" y="4" rx="2" />
+                </svg>
+              </button>
+              <span id="currentTime" class="time">0:00</span>
+              <span class="time-separator">/</span>
+              <span id="duration" class="time">0:00</span>
+              <div class="transport-spacer"></div>
+
+              <label class="level-match-container" title="Match Level (Original preview uses normalized audio)">
+                <input type="checkbox" id="levelMatchBtn" checked>
+                <span>Lvl Match</span>
+              </label>
+
+              <button id="bypassBtn" class="transport-btn btn-bypass" title="A/B — compare original vs master"
+                data-tip="A/B toggle: switch between the untouched original (A) and your master (B).">
+                <span class="ab-half ab-a">A</span>
+                <span class="ab-half ab-b active-side">B</span>
+                <span class="bypass-label">Master</span>
+              </button>
+              <button id="spectroBtn" class="transport-btn btn-bypass" title="Toggle Spectrogram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12H3" />
+                  <path d="M21 6H3" />
+                  <path d="M21 18H3" />
+                  <path d="M6 12v3" />
+                  <path d="M10 9v9" />
+                  <path d="M14 6v15" />
+                  <path d="M18 3v21" />
+                </svg>
+                <span class="bypass-label">Spec</span>
+              </button>
+            </div>
+          </div>
+          <div class="level-meter" id="levelMeter">
+            <canvas id="meterCanvas" width="600" height="40"></canvas>
+            <div class="meter-labels">
+              <span>-48</span>
+              <span>-36</span>
+              <span>-24</span>
+              <span>-12</span>
+              <span>-6</span>
+              <span>0</span>
+            </div>
+            <div class="peak-display">
+              <span id="peakL">L: -∞ dB</span>
+              <span id="outputLufs">-- LUFS</span>
+              <span id="peakR">R: -∞ dB</span>
+            </div>
+            <div class="overload-indicator" id="overloadIndicator">CLIP</div>
+          </div>
+
+          <!-- Real-time visualizers: spectrum analyzer + stereo field scope -->
+          <div class="visualizer-row">
+            <div class="visualizer-panel spectrum-panel">
+              <div class="visualizer-title">Spectrum</div>
+              <canvas id="spectrumCanvas"></canvas>
+            </div>
+            <div class="visualizer-panel scope-panel">
+              <div class="visualizer-title">Stereo Field</div>
+              <canvas id="scopeCanvas"></canvas>
+              <div class="correlation-meter" data-tip="Phase correlation: +1 mono-safe, 0 wide, below 0 phase issues.">
+                <span class="corr-label">-1</span>
+                <div class="correlation-track">
+                  <div class="correlation-indicator" id="correlationIndicator"></div>
+                </div>
+                <span class="corr-label">+1</span>
+                <span class="corr-value" id="correlationValue">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offline analysis: LUFS history, dynamics, warnings, suggestions -->
+          <div class="analysis-section" id="analysisSection">
+            <div class="analysis-header">
+              <span class="visualizer-title">Analysis</span>
+              <span class="analysis-status" id="analysisStatus"></span>
+              <div class="analysis-legend">
+                <span class="legend-item"><i class="li-momentary"></i> Momentary</span>
+                <span class="legend-item"><i class="li-shortterm"></i> Short-term</span>
+                <span class="legend-item"><i class="li-integrated"></i> Integrated</span>
+                <span class="legend-item"><i class="li-target"></i> Target</span>
+              </div>
+            </div>
+            <div class="analysis-body">
+              <div class="lufs-graph-wrap">
+                <canvas id="lufsGraph"></canvas>
+              </div>
+              <div class="analysis-side">
+                <div class="analysis-stats">
+                  <div class="stat-tile" data-tip="Integrated loudness (ITU-R BS.1770-4) of the rendered master.">
+                    <span class="stat-label">Integrated</span>
+                    <span class="stat-value" id="statLufs">--</span>
+                    <span class="stat-unit">LUFS</span>
+                  </div>
+                  <div class="stat-tile" data-tip="4x-oversampled true peak of the rendered master.">
+                    <span class="stat-label">True Peak</span>
+                    <span class="stat-value" id="statPeak">--</span>
+                    <span class="stat-unit">dBTP</span>
+                  </div>
+                  <div class="stat-tile"
+                    data-tip="Peak-to-loudness ratio (true peak minus integrated LUFS) — a DR score. Below 6dB is heavily squashed; 8-12dB is typical for modern masters.">
+                    <span class="stat-label">Dynamics</span>
+                    <span class="stat-value" id="statDr">--</span>
+                    <span class="stat-unit">PLR</span>
+                  </div>
+                  <div class="stat-tile" data-tip="Overall phase correlation: +1 mono-safe, below 0 cancels in mono.">
+                    <span class="stat-label">Correlation</span>
+                    <span class="stat-value" id="statCorr">--</span>
+                    <span class="stat-unit">Φ</span>
+                  </div>
+                </div>
+                <div class="analysis-feedback" id="analysisFeedback"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spectrogram Panel -->
+          <div class="spectrogram-panel hidden" id="spectrogramContainer"></div>
+        </div>
+      </div>
+
+      <!-- Genre starting points -->
+      <div class="genre-card console-only" id="genreCard">
+        <div class="genre-header">
+          <h3>Genre Presets</h3>
+          <span class="genre-hint">One-click starting points — fine-tune below</span>
+        </div>
+        <div class="genre-presets" id="genrePresets">
+          <button class="genre-btn" data-genre="electronic"
+            data-tip="Tight low end, wide highs, club-ready punch. Targets -9 LUFS.">Electronic</button>
+          <button class="genre-btn" data-genre="hiphop"
+            data-tip="Heavy lows, warm mids, hard-hitting drums. Targets -10 LUFS.">Hip-Hop</button>
+          <button class="genre-btn" data-genre="acoustic"
+            data-tip="Natural dynamics, gentle warmth, open top end. Targets -14 LUFS.">Acoustic</button>
+          <button class="genre-btn" data-genre="podcast"
+            data-tip="Voice clarity, level consistency. Targets -16 LUFS.">Podcast</button>
+          <button class="genre-btn" data-genre="loud"
+            data-tip="Maximum impact — pushed level and saturation. Targets -7 LUFS.">Loud</button>
+          <button class="genre-btn" data-genre="streaming"
+            data-tip="Balanced master tuned for platform normalization. Targets -14 LUFS.">Streaming</button>
+        </div>
+      </div>
+
+      <!-- Settings Grid - 4 columns -->
+      <div class="panel-grid console-only">
+        <div class="settings-card">
+          <h3>Quick Fix <span class="live-badge">Live</span></h3>
+          <label class="toggle-row"
+            data-tip="Multiband compression to glue the mix together with balanced frequency control.">
+            <span>Glue Compression</span>
+            <input type="checkbox" id="glueCompression">
+            <span class="toggle"></span>
+          </label>
+          <label class="toggle-row"
+            data-tip="Multiband dynamic processor: de-esses, tames resonances, smooths AI artifacts in the 3-12kHz range.">
+            <span>De-harsh</span>
+            <input type="checkbox" id="deharsh" checked>
+            <span class="toggle"></span>
+          </label>
+          <label class="toggle-row" data-tip="Removes sub-bass rumble below 30Hz and fixes DC offset.">
+            <span>Clean Low End</span>
+            <input type="checkbox" id="cleanLowEnd" checked>
+            <span class="toggle"></span>
+          </label>
+          <label class="toggle-row" data-tip="Intelligent gain automation that balances quiet and loud sections.">
+            <span>Auto Level</span>
+            <input type="checkbox" id="autoLevel">
+            <span class="toggle"></span>
+          </label>
+          <label class="toggle-row"
+            data-tip="Multiband transient shaper: adds punch to kicks (low), snap to snares (mid), leaves highs alone.">
+            <span>Add Punch</span>
+            <input type="checkbox" id="addPunch" checked>
+            <span class="toggle"></span>
+          </label>
+        </div>
+
+        <div class="settings-card">
+          <h3>Stereo <span class="live-badge">Live</span></h3>
+          <div class="slider-row" data-tip="Stereo width: 0% = mono, 100% = original, 200% = extra wide.">
+            <span>Width</span>
+            <input type="range" id="stereoWidth" min="0" max="200" step="5" value="100">
+            <span class="slider-value" id="stereoWidthValue">100%</span>
+          </div>
+          <label class="toggle-row" data-tip="Narrows bass below ~200Hz for better club/speaker mono compatibility.">
+            <span>Mono Bass</span>
+            <input type="checkbox" id="centerBass" checked>
+            <span class="toggle"></span>
+          </label>
+        </div>
+
+        <div class="settings-card">
+          <h3>Polish <span class="live-badge">Live</span></h3>
+          <label class="toggle-row" data-tip="Reduces muddy frequencies around 250Hz for clarity.">
+            <span>Cut Mud</span>
+            <input type="checkbox" id="cutMud">
+            <span class="toggle"></span>
+          </label>
+          <label class="toggle-row" data-tip="Adds sparkle and brightness with a 12kHz high shelf boost.">
+            <span>Add Air</span>
+            <input type="checkbox" id="addAir" checked>
+            <span class="toggle"></span>
+          </label>
+          <label class="toggle-row" data-tip="Adds subtle tape-style saturation for analog warmth.">
+            <span>Tape Warmth</span>
+            <input type="checkbox" id="tapeWarmth" checked>
+            <span class="toggle"></span>
+          </label>
+        </div>
+
+        <div class="settings-card">
+          <h3>Output</h3>
+          <div class="output-presets">
+            <button class="output-preset-btn" data-preset="streaming"
+              data-tip="48kHz/24-bit - Optimal for streaming platforms (DistroKid, TuneCore, Spotify)">Streaming</button>
+            <button class="output-preset-btn active" data-preset="studio"
+              data-tip="48kHz/24-bit - Studio quality, video production">Studio</button>
+          </div>
+          <div class="select-row"
+            data-tip="48kHz is preferred by distributors. Better quality through encoding pipelines.">
+            <span>Sample Rate</span>
+            <select id="sampleRate">
+              <option value="44100">44.1 kHz</option>
+              <option value="48000" selected>48 kHz</option>
+            </select>
+          </div>
+          <div class="select-row" data-tip="24-bit preferred by distributors. More headroom through encoding.">
+            <span>Bit Depth</span>
+            <select id="bitDepth">
+              <option value="16">16-bit</option>
+              <option value="24" selected>24-bit</option>
+            </select>
+          </div>
+          <label class="toggle-row" id="ditherNoiseShapingRow"
+            data-tip="16-bit only: shapes dither noise toward higher frequencies for cleaner low-level detail.">
+            <span>Noise-Shaped Dither</span>
+            <input type="checkbox" id="ditherNoiseShaping">
+            <span class="toggle"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Advanced mastering modules -->
+      <div class="panel-grid advanced-grid console-only">
+        <div class="settings-card" id="mbCard">
+          <h3>Multiband Comp <span class="live-badge">Live</span></h3>
+          <label class="toggle-row"
+            data-tip="4-band compressor (LR4 crossovers at 120/700/5000 Hz) with per-band settings and stereo-linked detection.">
+            <span>Enable</span>
+            <input type="checkbox" id="mbEnabled">
+            <span class="toggle"></span>
+          </label>
+          <div class="mb-band-tabs">
+            <button class="mb-band-btn active" data-band="low" data-tip="Sub + kick body, below 120Hz">Low</button>
+            <button class="mb-band-btn" data-band="lowMid" data-tip="Bass and warmth, 120-700Hz">L-Mid</button>
+            <button class="mb-band-btn" data-band="highMid" data-tip="Presence and vocals, 700Hz-5kHz">H-Mid</button>
+            <button class="mb-band-btn" data-band="high" data-tip="Air and cymbals, above 5kHz">High</button>
+          </div>
+          <div class="slider-row">
+            <span>Thresh</span>
+            <input type="range" id="mbThreshold" min="-40" max="0" step="1" value="-24">
+            <span class="slider-value" id="mbThresholdValue">-24 dB</span>
+          </div>
+          <div class="slider-row">
+            <span>Ratio</span>
+            <input type="range" id="mbRatio" min="1" max="8" step="0.1" value="2.5">
+            <span class="slider-value" id="mbRatioValue">2.5:1</span>
+          </div>
+          <div class="slider-row">
+            <span>Attack</span>
+            <input type="range" id="mbAttack" min="1" max="100" step="1" value="30">
+            <span class="slider-value" id="mbAttackValue">30 ms</span>
+          </div>
+          <div class="slider-row">
+            <span>Release</span>
+            <input type="range" id="mbRelease" min="20" max="500" step="5" value="150">
+            <span class="slider-value" id="mbReleaseValue">150 ms</span>
+          </div>
+        </div>
+
+        <div class="settings-card" id="msEqCard">
+          <h3>Mid/Side EQ <span class="live-badge">Live</span></h3>
+          <div class="ms-group-label">Mid (center)</div>
+          <div class="slider-row" data-tip="Low shelf 120Hz on the mid signal — kick/bass weight.">
+            <span>Low</span>
+            <input type="range" id="msMidLow" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msMidLowValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="Peak 1kHz on the mid signal — vocal/lead presence.">
+            <span>Mid</span>
+            <input type="range" id="msMidMid" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msMidMidValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="High shelf 8kHz on the mid signal — center brightness.">
+            <span>High</span>
+            <input type="range" id="msMidHigh" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msMidHighValue">0 dB</span>
+          </div>
+          <div class="ms-group-label">Side (stereo)</div>
+          <div class="slider-row" data-tip="Low shelf 120Hz on the sides — cut to tighten/mono the low end.">
+            <span>Low</span>
+            <input type="range" id="msSideLow" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msSideLowValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="Peak 1kHz on the sides — width in the mids.">
+            <span>Mid</span>
+            <input type="range" id="msSideMid" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msSideMidValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="High shelf 8kHz on the sides — boost for airy width.">
+            <span>High</span>
+            <input type="range" id="msSideHigh" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msSideHighValue">0 dB</span>
+          </div>
+        </div>
+
+        <div class="settings-card" id="transientCard">
+          <h3>Transient Shaper <span class="live-badge">Live</span></h3>
+          <div class="slider-row"
+            data-tip="Positive: sharper, punchier attacks. Negative: softer, rounder transients.">
+            <span>Attack</span>
+            <input type="range" id="transientAttack" min="-100" max="100" step="5" value="0">
+            <span class="slider-value" id="transientAttackValue">0%</span>
+          </div>
+          <div class="slider-row"
+            data-tip="Positive: fuller tails/room. Negative: tighter, drier sustain.">
+            <span>Sustain</span>
+            <input type="range" id="transientSustain" min="-100" max="100" step="5" value="0">
+            <span class="slider-value" id="transientSustainValue">0%</span>
+          </div>
+          <p class="card-note">Full-range envelope shaper — use “Add Punch” above for the multiband
+            drum-focused variant.</p>
+        </div>
+
+        <div class="settings-card" id="referenceCard">
+          <h3>Reference Match <span class="live-badge">Live</span></h3>
+          <div class="ref-load-row">
+            <button id="loadReferenceBtn" class="btn-change">Load reference…</button>
+            <input type="file" id="refInput" accept="audio/*,.mp3,.wav,.flac,.aac,.m4a,.mp4" hidden>
+            <span class="ref-file-name" id="refFileName">No reference loaded</span>
+          </div>
+          <label class="toggle-row"
+            data-tip="EQ-match your track's tonal balance to the reference (loudness is not copied).">
+            <span>Match Tonal Curve</span>
+            <input type="checkbox" id="refMatchEnabled" disabled>
+            <span class="toggle"></span>
+          </label>
+          <div class="slider-row" data-tip="How strongly to pull toward the reference curve.">
+            <span>Amount</span>
+            <input type="range" id="refMatchAmount" min="0" max="100" step="5" value="50">
+            <span class="slider-value" id="refMatchAmountValue">50%</span>
+          </div>
+          <p class="card-note">The reference's tonal curve is shown dashed on the spectrum analyzer.</p>
+        </div>
+      </div>
+
+      <!-- Loudness + EQ Row -->
+      <div class="eq-row console-only">
+        <div class="settings-card loudness-card">
+          <h3>Loudness <span class="live-badge">Live</span></h3>
+          <div class="loudness-faders">
+            <div id="inputGainFader" class="fader-container"
+              data-tip="Adjust input level before processing. Double-click to reset to 0dB."></div>
+            <div id="ceilingFader" class="fader-container"
+              data-tip="Maximum peak level. -1dB is standard for streaming."></div>
+          </div>
+          <div class="loudness-toggles">
+            <label class="toggle-row"
+              data-tip="Normalize loudness to target LUFS. -14 for Spotify, -9 for louder masters.">
+              <span>Normalize Loudness</span>
+              <input type="checkbox" id="normalizeLoudness" checked>
+              <span class="toggle"></span>
+            </label>
+            <div class="slider-row target-lufs-row"
+              data-tip="Target loudness: -16 (quiet) to -6 (loud). -14 is Spotify standard, -9 is typical for modern masters.">
+              <span>Target</span>
+              <input type="range" id="targetLufs" min="-16" max="-6" step="0.5" value="-14">
+              <span class="slider-value" id="targetLufsValue">-14 LUFS</span>
+            </div>
+            <div class="platform-presets">
+              <button class="platform-btn" data-platform="spotify" data-lufs="-14" data-ceiling="-1"
+                data-tip="Spotify: -14 LUFS, -1 dBTP ceiling">Spotify</button>
+              <button class="platform-btn" data-platform="apple" data-lufs="-16" data-ceiling="-1"
+                data-tip="Apple Music: -16 LUFS, -1 dBTP ceiling">Apple</button>
+              <button class="platform-btn" data-platform="youtube" data-lufs="-14" data-ceiling="-1"
+                data-tip="YouTube: -14 LUFS, -1 dBTP ceiling">YouTube</button>
+              <button class="platform-btn" data-platform="soundcloud" data-lufs="-14" data-ceiling="-1"
+                data-tip="SoundCloud: -14 LUFS, -1 dBTP ceiling">SndCld</button>
+              <button class="platform-btn" data-platform="club" data-lufs="-8" data-ceiling="-0.5"
+                data-tip="Club / DJ play: -8 LUFS, -0.5 dBTP ceiling">Club</button>
+            </div>
+            <label class="toggle-row" data-tip="Prevents audio from clipping by limiting peaks to the ceiling value.">
+              <span>True Peak Limit</span>
+              <input type="checkbox" id="truePeakLimit" checked>
+              <span class="toggle"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5-Band EQ -->
+        <div class="eq-section">
+          <h3>EQ <span class="live-badge">Live</span></h3>
+          <div class="eq-bands">
+            <div class="eq-band" id="eqLowFader" data-tip="Low shelf at 80Hz"></div>
+            <div class="eq-band" id="eqLowMidFader" data-tip="Peak at 250Hz"></div>
+            <div class="eq-band" id="eqMidFader" data-tip="Peak at 1kHz"></div>
+            <div class="eq-band" id="eqHighMidFader" data-tip="Peak at 4kHz"></div>
+            <div class="eq-band" id="eqHighFader" data-tip="High shelf at 12kHz"></div>
+          </div>
+          <div class="eq-presets">
+            <button class="preset-btn active" data-preset="flat">Flat</button>
+            <button class="preset-btn" data-preset="vocal">Vocal Boost</button>
+            <button class="preset-btn" data-preset="bass">Bass Boost</button>
+            <button class="preset-btn" data-preset="bright">Bright</button>
+            <button class="preset-btn" data-preset="warm">Warm</button>
+            <button class="preset-btn" data-preset="aifix">AI Fix</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="statusMessage" class="status-message"></div>
+
+      <footer class="landing-footer" id="landingFooter">
+        <span>All DSP runs client-side · ITU-R BS.1770-4 loudness · True-peak limiting · Lossless WAV export</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Tooltip element -->
+  <div id="tooltip" class="tooltip"></div>
+
+  <!-- Loading Modal -->
+  <div id="loadingModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-spinner"></div>
+      <div class="modal-text" id="loadingText">Loading...</div>
+      <div class="modal-progress">
+        <div class="modal-progress-bar" id="loadingProgressBar"></div>
+      </div>
+      <div class="modal-percent" id="loadingPercent">0%</div>
+      <button id="modalCancelBtn" class="btn-cancel hidden">Cancel</button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>
