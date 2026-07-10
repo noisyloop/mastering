@@ -11,7 +11,12 @@ import {
   processHybridDynamic,
   applyMasteringSoftClip,
   applyLookaheadLimiter,
-  applyFinalFilters
+  applyFinalFilters,
+  shapeTransients,
+  applyMidSideEQ,
+  msEqIsActive,
+  applyMultiband4,
+  applyMatchEQ
 } from '../lib/dsp/index.js';
 import { applyMultibandTransient } from '../lib/dsp/multiband-transient.js';
 import { encodeWAVAsync, createOfflineNodes } from './encoder.js';
@@ -113,6 +118,35 @@ function applyDSPChain(buffer, settings, onProgress = null, logPrefix = '[DSP]')
     });
   }
   if (onProgress) onProgress(0.60);
+
+  // 4.5 Transient Shaper (parameterized attack/sustain)
+  {
+    const tAttack = Number(settings.transientAttack) || 0;
+    const tSustain = Number(settings.transientSustain) || 0;
+    if (tAttack !== 0 || tSustain !== 0) {
+      console.log(`${logPrefix} Shaping transients (attack:`, tAttack, 'sustain:', tSustain, ')...');
+      renderedBuffer = shapeTransients(renderedBuffer, tAttack, tSustain, 0.6);
+    }
+  }
+
+  // 4.7 Reference Match EQ (pull tonal balance toward the reference)
+  if (settings.refMatch && settings.refMatch.enabled &&
+    Array.isArray(settings.refMatch.bands) && settings.refMatch.bands.length) {
+    console.log(`${logPrefix} Applying reference match EQ...`);
+    renderedBuffer = applyMatchEQ(renderedBuffer, settings.refMatch.bands, settings.refMatch.amount);
+  }
+
+  // 4.8 Mid/Side EQ
+  if (msEqIsActive(settings.msEq)) {
+    console.log(`${logPrefix} Applying M/S EQ...`);
+    renderedBuffer = applyMidSideEQ(renderedBuffer, settings.msEq);
+  }
+
+  // 4.9 Multiband Compressor (4 bands, per-band settings)
+  if (settings.multibandComp && settings.multibandComp.enabled) {
+    console.log(`${logPrefix} Applying multiband compression...`);
+    renderedBuffer = applyMultiband4(renderedBuffer, { bands: settings.multibandComp.bands });
+  }
 
   // 5. Apply final High Cut (18kHz LPF 6dB/oct)
   // Note: HPF (Clean Low End) is already handled by the WebAudio highpass node in the offline render graph.

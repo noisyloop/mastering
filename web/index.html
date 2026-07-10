@@ -345,6 +345,120 @@
         </div>
       </div>
 
+      <!-- Advanced mastering modules -->
+      <div class="panel-grid advanced-grid console-only">
+        <div class="settings-card" id="mbCard">
+          <h3>Multiband Comp <span class="live-badge">Live</span></h3>
+          <label class="toggle-row"
+            data-tip="4-band compressor (LR4 crossovers at 120/700/5000 Hz) with per-band settings and stereo-linked detection.">
+            <span>Enable</span>
+            <input type="checkbox" id="mbEnabled">
+            <span class="toggle"></span>
+          </label>
+          <div class="mb-band-tabs">
+            <button class="mb-band-btn active" data-band="low" data-tip="Sub + kick body, below 120Hz">Low</button>
+            <button class="mb-band-btn" data-band="lowMid" data-tip="Bass and warmth, 120-700Hz">L-Mid</button>
+            <button class="mb-band-btn" data-band="highMid" data-tip="Presence and vocals, 700Hz-5kHz">H-Mid</button>
+            <button class="mb-band-btn" data-band="high" data-tip="Air and cymbals, above 5kHz">High</button>
+          </div>
+          <div class="slider-row">
+            <span>Thresh</span>
+            <input type="range" id="mbThreshold" min="-40" max="0" step="1" value="-24">
+            <span class="slider-value" id="mbThresholdValue">-24 dB</span>
+          </div>
+          <div class="slider-row">
+            <span>Ratio</span>
+            <input type="range" id="mbRatio" min="1" max="8" step="0.1" value="2.5">
+            <span class="slider-value" id="mbRatioValue">2.5:1</span>
+          </div>
+          <div class="slider-row">
+            <span>Attack</span>
+            <input type="range" id="mbAttack" min="1" max="100" step="1" value="30">
+            <span class="slider-value" id="mbAttackValue">30 ms</span>
+          </div>
+          <div class="slider-row">
+            <span>Release</span>
+            <input type="range" id="mbRelease" min="20" max="500" step="5" value="150">
+            <span class="slider-value" id="mbReleaseValue">150 ms</span>
+          </div>
+        </div>
+
+        <div class="settings-card" id="msEqCard">
+          <h3>Mid/Side EQ <span class="live-badge">Live</span></h3>
+          <div class="ms-group-label">Mid (center)</div>
+          <div class="slider-row" data-tip="Low shelf 120Hz on the mid signal — kick/bass weight.">
+            <span>Low</span>
+            <input type="range" id="msMidLow" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msMidLowValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="Peak 1kHz on the mid signal — vocal/lead presence.">
+            <span>Mid</span>
+            <input type="range" id="msMidMid" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msMidMidValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="High shelf 8kHz on the mid signal — center brightness.">
+            <span>High</span>
+            <input type="range" id="msMidHigh" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msMidHighValue">0 dB</span>
+          </div>
+          <div class="ms-group-label">Side (stereo)</div>
+          <div class="slider-row" data-tip="Low shelf 120Hz on the sides — cut to tighten/mono the low end.">
+            <span>Low</span>
+            <input type="range" id="msSideLow" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msSideLowValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="Peak 1kHz on the sides — width in the mids.">
+            <span>Mid</span>
+            <input type="range" id="msSideMid" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msSideMidValue">0 dB</span>
+          </div>
+          <div class="slider-row" data-tip="High shelf 8kHz on the sides — boost for airy width.">
+            <span>High</span>
+            <input type="range" id="msSideHigh" min="-6" max="6" step="0.5" value="0">
+            <span class="slider-value" id="msSideHighValue">0 dB</span>
+          </div>
+        </div>
+
+        <div class="settings-card" id="transientCard">
+          <h3>Transient Shaper <span class="live-badge">Live</span></h3>
+          <div class="slider-row"
+            data-tip="Positive: sharper, punchier attacks. Negative: softer, rounder transients.">
+            <span>Attack</span>
+            <input type="range" id="transientAttack" min="-100" max="100" step="5" value="0">
+            <span class="slider-value" id="transientAttackValue">0%</span>
+          </div>
+          <div class="slider-row"
+            data-tip="Positive: fuller tails/room. Negative: tighter, drier sustain.">
+            <span>Sustain</span>
+            <input type="range" id="transientSustain" min="-100" max="100" step="5" value="0">
+            <span class="slider-value" id="transientSustainValue">0%</span>
+          </div>
+          <p class="card-note">Full-range envelope shaper — use “Add Punch” above for the multiband
+            drum-focused variant.</p>
+        </div>
+
+        <div class="settings-card" id="referenceCard">
+          <h3>Reference Match <span class="live-badge">Live</span></h3>
+          <div class="ref-load-row">
+            <button id="loadReferenceBtn" class="btn-change">Load reference…</button>
+            <input type="file" id="refInput" accept="audio/*,.mp3,.wav,.flac,.aac,.m4a,.mp4" hidden>
+            <span class="ref-file-name" id="refFileName">No reference loaded</span>
+          </div>
+          <label class="toggle-row"
+            data-tip="EQ-match your track's tonal balance to the reference (loudness is not copied).">
+            <span>Match Tonal Curve</span>
+            <input type="checkbox" id="refMatchEnabled" disabled>
+            <span class="toggle"></span>
+          </label>
+          <div class="slider-row" data-tip="How strongly to pull toward the reference curve.">
+            <span>Amount</span>
+            <input type="range" id="refMatchAmount" min="0" max="100" step="5" value="50">
+            <span class="slider-value" id="refMatchAmountValue">50%</span>
+          </div>
+          <p class="card-note">The reference's tonal curve is shown dashed on the spectrum analyzer.</p>
+        </div>
+      </div>
+
       <!-- Loudness + EQ Row -->
       <div class="eq-row console-only">
         <div class="settings-card loudness-card">
@@ -367,6 +481,18 @@
               <span>Target</span>
               <input type="range" id="targetLufs" min="-16" max="-6" step="0.5" value="-14">
               <span class="slider-value" id="targetLufsValue">-14 LUFS</span>
+            </div>
+            <div class="platform-presets">
+              <button class="platform-btn" data-platform="spotify" data-lufs="-14" data-ceiling="-1"
+                data-tip="Spotify: -14 LUFS, -1 dBTP ceiling">Spotify</button>
+              <button class="platform-btn" data-platform="apple" data-lufs="-16" data-ceiling="-1"
+                data-tip="Apple Music: -16 LUFS, -1 dBTP ceiling">Apple</button>
+              <button class="platform-btn" data-platform="youtube" data-lufs="-14" data-ceiling="-1"
+                data-tip="YouTube: -14 LUFS, -1 dBTP ceiling">YouTube</button>
+              <button class="platform-btn" data-platform="soundcloud" data-lufs="-14" data-ceiling="-1"
+                data-tip="SoundCloud: -14 LUFS, -1 dBTP ceiling">SndCld</button>
+              <button class="platform-btn" data-platform="club" data-lufs="-8" data-ceiling="-0.5"
+                data-tip="Club / DJ play: -8 LUFS, -0.5 dBTP ceiling">Club</button>
             </div>
             <label class="toggle-row" data-tip="Prevents audio from clipping by limiting peaks to the ceiling value.">
               <span>True Peak Limit</span>

@@ -181,3 +181,29 @@ export {
   applyMasteringSoftClip
 } from './soft-clipper.js';
 
+// Mid/Side EQ
+export {
+  MS_EQ_BANDS,
+  MS_EQ_DEFAULTS,
+  msEqIsActive,
+  applyMidSideEQ
+} from './ms-eq.js';
+
+// 4-Band Multiband Compressor (parameterized)
+export {
+  MULTIBAND4_CROSSOVERS,
+  MULTIBAND4_BAND_KEYS,
+  MULTIBAND4_DEFAULTS,
+  splitBands4,
+  applyMultiband4
+} from './multiband4.js';
+
+// Reference Track Matching
+export {
+  MATCH_BANDS,
+  REF_MATCH_DEFAULTS,
+  computeTonalCurve,
+  computeMatchEQ,
+  applyMatchEQ
+} from './reference-match.js';
+

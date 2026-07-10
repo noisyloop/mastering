@@ -1173,6 +1173,110 @@ body.dragging .file-zone {
   border-color: var(--theme-accent);
 }
 
+/* Advanced mastering cards */
+.mb-band-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.mb-band-btn {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 5px 4px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mb-band-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--theme-accent);
+}
+
+.mb-band-btn.active {
+  background: var(--theme-accent);
+  color: #fff;
+  border-color: var(--theme-accent);
+}
+
+.ms-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 0 2px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.card-note {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  padding-top: 8px;
+}
+
+.ref-load-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 4px;
+}
+
+.ref-file-name {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.ref-file-name.loaded {
+  color: var(--theme-accent-secondary);
+}
+
+/* Platform loudness presets */
+.platform-presets {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 4px 0 8px;
+}
+
+.platform-btn {
+  flex: 1;
+  min-width: 56px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.platform-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--theme-accent);
+}
+
+.platform-btn.active {
+  background: var(--theme-accent);
+  color: #fff;
+  border-color: var(--theme-accent);
+}
+
 /* Output presets */
 .output-presets {
   display: flex;

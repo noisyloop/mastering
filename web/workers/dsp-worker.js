@@ -27,7 +27,13 @@ import {
   processHybridDynamic,
   applyFinalFilters,
   applyMasteringSoftClip,
-  applyLookaheadLimiter
+  applyLookaheadLimiter,
+  // Extended mastering chain
+  shapeTransients,
+  applyMidSideEQ,
+  msEqIsActive,
+  applyMultiband4,
+  applyMatchEQ
 } from '../lib/dsp/index.js';
 
 /**
@@ -1527,6 +1533,23 @@ self.onmessage = async (e) => {
           buffer = applyMultibandTransient(buffer);
         }
 
+        // 4.5 Transient Shaper (parameterized attack/sustain)
+        {
+          const tAttack = Number(settings.transientAttack) || 0;
+          const tSustain = Number(settings.transientSustain) || 0;
+          if (tAttack !== 0 || tSustain !== 0) {
+            sendProgress(id, 0.57, 'Shaping transients...');
+            buffer = shapeTransients(buffer, tAttack, tSustain, 0.6);
+          }
+        }
+
+        // 4.7 Reference Match EQ (pull tonal balance toward the reference)
+        if (settings.refMatch && settings.refMatch.enabled &&
+          Array.isArray(settings.refMatch.bands) && settings.refMatch.bands.length) {
+          sendProgress(id, 0.58, 'Matching reference curve...');
+          buffer = applyMatchEQ(buffer, settings.refMatch.bands, settings.refMatch.amount);
+        }
+
         // --- PREVIEW MODE END ---
         if (mode === 'preview') {
           console.log('[Worker Chain] Preview render complete (Heavy FX only)');
@@ -1566,6 +1589,12 @@ self.onmessage = async (e) => {
         sendProgress(id, 0.65, 'Applying EQ...');
         buffer = applyParametricEQ(buffer, settings);
 
+        // 6.5 Mid/Side EQ
+        if (msEqIsActive(settings.msEq)) {
+          sendProgress(id, 0.67, 'Applying M/S EQ...');
+          buffer = applyMidSideEQ(buffer, settings.msEq);
+        }
+
         // 7. Glue Compressor
         if (settings.glueCompression) {
           sendProgress(id, 0.70, 'Applying glue compressor...');
@@ -1576,6 +1605,12 @@ self.onmessage = async (e) => {
             release: 0.25,
             knee: 10
           });
+        }
+
+        // 7.2 Multiband Compressor (4 bands, per-band settings)
+        if (settings.multibandComp && settings.multibandComp.enabled) {
+          sendProgress(id, 0.71, 'Applying multiband compression...');
+          buffer = applyMultiband4(buffer, { bands: settings.multibandComp.bands });
         }
 
         // 7.5 Stereo processing (Width + Center Bass)

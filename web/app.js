@@ -8,7 +8,9 @@ import {
   normalizeToLUFS,
   detectDCOffsetBuffer,
   removeDCOffset,
-  getDCOffsetSeverity
+  getDCOffsetSeverity,
+  computeTonalCurve,
+  computeMatchEQ
 } from './lib/dsp/index.js';
 
 // Import presets
@@ -32,6 +34,9 @@ import {
   setCeilingDb,
   applyEQPreset,
   clearActivePreset,
+  initAdvancedControls,
+  setRefMatchBands,
+  refMatchState,
   // Meters
   meterState,
   startMeter,
@@ -1246,6 +1251,9 @@ async function loadFile(file) {
       updateStereoWidth();
       updateAudioChain();
 
+      // Reference matching compares against THIS track — recompute its curve
+      recomputeMatchBands();
+
       updateChecklist();
       return true;
     }
@@ -1679,6 +1687,9 @@ async function renormalizeAudio(newTargetLufs) {
 targetLufsSlider.addEventListener('input', () => {
   const newValue = parseInt(targetLufsSlider.value);
 
+  // Manual target change — no platform preset is active anymore
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+
   // Update display immediately
   setTargetLufs(newValue);
   targetLufsValue.textContent = `${newValue} LUFS`;
@@ -1893,6 +1904,99 @@ function applyGenrePreset(name) {
 
 document.querySelectorAll('.genre-btn').forEach(btn => {
   btn.addEventListener('click', () => applyGenrePreset(btn.dataset.genre));
+});
+
+// ============================================================================
+// Advanced Controls (multiband comp, M/S EQ, transient shaper, reference)
+// ============================================================================
+
+initAdvancedControls(() => updateAudioChain());
+
+// --- Reference track loading & tonal-curve matching ---
+const loadReferenceBtn = document.getElementById('loadReferenceBtn');
+const refInput = document.getElementById('refInput');
+const refFileName = document.getElementById('refFileName');
+const refMatchEnabled = document.getElementById('refMatchEnabled');
+
+const referenceState = { curve: null, name: null };
+
+function normalizeCurveForDisplay(curve) {
+  // Shift the (arbitrary-scale) tonal curve so its mean sits around -45dB
+  // in the spectrum analyzer's display range.
+  const mean = curve.reduce((a, p) => a + p.db, 0) / curve.length;
+  return curve.map(p => ({ freq: p.freq, db: p.db - mean - 45 }));
+}
+
+function recomputeMatchBands() {
+  if (referenceState.curve && fileState.originalBuffer) {
+    const sourceCurve = computeTonalCurve(fileState.originalBuffer);
+    setRefMatchBands(computeMatchEQ(sourceCurve, referenceState.curve));
+  } else {
+    setRefMatchBands([]);
+  }
+  if (refMatchState.enabled) {
+    updateAudioChain();
+  }
+}
+
+async function loadReferenceFile(file) {
+  try {
+    showToast(`Analyzing reference "${file.name}"...`, '', 0);
+    const ctx = initAudioContext();
+    const arrayBuffer = await file.arrayBuffer();
+    const decoded = await ctx.decodeAudioData(arrayBuffer);
+
+    referenceState.curve = computeTonalCurve(decoded);
+    referenceState.name = file.name;
+
+    refFileName.textContent = file.name;
+    refFileName.classList.add('loaded');
+    refMatchEnabled.disabled = false;
+
+    // Show the reference tonal curve on the spectrum analyzer
+    visualizers.spectrum.setReferenceCurve(normalizeCurveForDisplay(referenceState.curve));
+
+    recomputeMatchBands();
+    showToast('Reference analyzed — enable "Match Tonal Curve" to apply.', 'success', 5000);
+  } catch (err) {
+    console.error('[Reference] Load failed:', err);
+    showToast(`Could not analyze reference: ${err.message}`, 'error');
+  }
+}
+
+loadReferenceBtn.addEventListener('click', () => refInput.click());
+refInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  refInput.value = '';
+  if (file) await loadReferenceFile(file);
+});
+
+// --- Platform loudness presets ---
+function clearPlatformActive() {
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+}
+
+document.querySelectorAll('.platform-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lufs = parseFloat(btn.dataset.lufs);
+    const ceiling = parseFloat(btn.dataset.ceiling);
+
+    normalizeLoudness.checked = true;
+    truePeakLimit.checked = true;
+    targetLufsSlider.value = lufs;
+    setTargetLufs(lufs);
+    targetLufsValue.textContent = `${lufs} LUFS`;
+    setCeilingDb(ceiling);
+
+    clearPlatformActive();
+    btn.classList.add('active');
+
+    if (fileState.originalBuffer) {
+      renormalizeAudio(lufs);
+    }
+    updateAudioChain();
+    updateChecklist();
+  });
 });
 
 // Setup output format presets
