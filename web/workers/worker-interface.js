@@ -277,6 +277,26 @@ export class DSPWorkerInterface {
   }
 
   /**
+   * Run full track analysis (LUFS timelines, true peak, DR, tonal balance)
+   * @param {AudioBuffer} audioBuffer - Rendered master buffer
+   * @param {Object} options - { targetLufs, ceilingDb }
+   * @param {Function} onProgress - Progress callback
+   * @returns {Promise<Object>} Analysis result
+   */
+  async analyze(audioBuffer, options = {}, onProgress = null) {
+    const { channels, sampleRate, transferables } = this._extractChannelData(audioBuffer);
+
+    const result = await this._send(
+      'ANALYZE',
+      { channels, sampleRate, options },
+      onProgress,
+      transferables
+    );
+
+    return result.analysis;
+  }
+
+  /**
    * Terminate the worker
    */
   terminate() {

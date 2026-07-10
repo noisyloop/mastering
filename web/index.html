@@ -219,6 +219,51 @@
             </div>
           </div>
 
+          <!-- Offline analysis: LUFS history, dynamics, warnings, suggestions -->
+          <div class="analysis-section" id="analysisSection">
+            <div class="analysis-header">
+              <span class="visualizer-title">Analysis</span>
+              <span class="analysis-status" id="analysisStatus"></span>
+              <div class="analysis-legend">
+                <span class="legend-item"><i class="li-momentary"></i> Momentary</span>
+                <span class="legend-item"><i class="li-shortterm"></i> Short-term</span>
+                <span class="legend-item"><i class="li-integrated"></i> Integrated</span>
+                <span class="legend-item"><i class="li-target"></i> Target</span>
+              </div>
+            </div>
+            <div class="analysis-body">
+              <div class="lufs-graph-wrap">
+                <canvas id="lufsGraph"></canvas>
+              </div>
+              <div class="analysis-side">
+                <div class="analysis-stats">
+                  <div class="stat-tile" data-tip="Integrated loudness (ITU-R BS.1770-4) of the rendered master.">
+                    <span class="stat-label">Integrated</span>
+                    <span class="stat-value" id="statLufs">--</span>
+                    <span class="stat-unit">LUFS</span>
+                  </div>
+                  <div class="stat-tile" data-tip="4x-oversampled true peak of the rendered master.">
+                    <span class="stat-label">True Peak</span>
+                    <span class="stat-value" id="statPeak">--</span>
+                    <span class="stat-unit">dBTP</span>
+                  </div>
+                  <div class="stat-tile"
+                    data-tip="Peak-to-loudness ratio (true peak minus integrated LUFS) — a DR score. Below 6dB is heavily squashed; 8-12dB is typical for modern masters.">
+                    <span class="stat-label">Dynamics</span>
+                    <span class="stat-value" id="statDr">--</span>
+                    <span class="stat-unit">PLR</span>
+                  </div>
+                  <div class="stat-tile" data-tip="Overall phase correlation: +1 mono-safe, below 0 cancels in mono.">
+                    <span class="stat-label">Correlation</span>
+                    <span class="stat-value" id="statCorr">--</span>
+                    <span class="stat-unit">Φ</span>
+                  </div>
+                </div>
+                <div class="analysis-feedback" id="analysisFeedback"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Spectrogram Panel -->
           <div class="spectrogram-panel hidden" id="spectrogramContainer"></div>
         </div>

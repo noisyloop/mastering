@@ -35,6 +35,7 @@ import {
   applyMultiband4,
   applyMatchEQ
 } from '../lib/dsp/index.js';
+import { analyzeTrack } from '../lib/analysis/track-analysis.js';
 
 /**
  * Worker-compatible AudioBuffer replacement
@@ -1469,6 +1470,22 @@ self.onmessage = async (e) => {
           data.options || {}
         );
         result = { channels: stereo };
+        break;
+      }
+
+      case 'ANALYZE': {
+        // Full offline analysis of a rendered master
+        const { channels, sampleRate, options } = data;
+        const buffer = new WorkerAudioBuffer({
+          numberOfChannels: channels.length,
+          length: channels[0].length,
+          sampleRate
+        });
+        for (let ch = 0; ch < channels.length; ch++) {
+          buffer.copyToChannel(channels[ch], ch);
+        }
+        sendProgress(id, 0.2, 'Analyzing loudness and spectrum...');
+        result = { analysis: analyzeTrack(buffer, options || {}) };
         break;
       }
 

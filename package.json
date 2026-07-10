@@ -9,7 +9,8 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "node e2e/smoke.mjs"
   },
   "license": "ISC",
   "devDependencies": {

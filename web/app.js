@@ -13,6 +13,9 @@ import {
   computeMatchEQ
 } from './lib/dsp/index.js';
 
+// Offline track analysis (main-thread fallback; normally runs in the worker)
+import { analyzeTrack } from './lib/analysis/track-analysis.js';
+
 // Import presets
 import { eqPresets, outputPresets, genrePresets } from './lib/presets/index.js';
 
@@ -62,7 +65,12 @@ import {
   // Before/after ghost overlay
   mountGhost,
   setGhostBuffer,
-  clearGhost
+  clearGhost,
+  // Analysis panel
+  renderAnalysisPanel,
+  redrawAnalysisPanel,
+  clearAnalysisPanel,
+  setAnalysisStatus
 } from './ui/index.js';
 
 let currentFile = null; // Store the currently selected File object (browser)
@@ -224,6 +232,7 @@ async function cleanupAudioContext() {
   spectrogram.analyser = null;
   visualizers.stop();
   clearGhost();
+  clearAnalysisPanel();
 
   // Destroy WaveSurfer first - it may hold references to AudioContext
   destroyWaveSurfer();
@@ -699,6 +708,9 @@ function scheduleRenderToCache() {
         fileState.cachedRenderBuffer = buffer;
         fileState.cachedRenderLufs = lufs;
 
+        // Analyze the freshly rendered master (async, non-blocking)
+        runAnalysis(buffer);
+
         // Update LUFS display
         if (outputLufsDisplay) {
           outputLufsDisplay.textContent = `${lufs.toFixed(1)} LUFS`;
@@ -742,6 +754,49 @@ function scheduleRenderToCache() {
       }
     }
   }, CACHE_RENDER_DEBOUNCE_MS);
+}
+
+// ============================================================================
+// Offline Track Analysis
+// ============================================================================
+
+let analysisVersion = 0;
+
+/**
+ * Analyze a rendered master buffer and update the analysis panel.
+ * Runs in the DSP worker when available; falls back to the main thread.
+ */
+async function runAnalysis(buffer) {
+  const thisVersion = ++analysisVersion;
+  const options = {
+    targetLufs: normalizeLoudness.checked ? targetLufsDb : null,
+    ceilingDb: ceilingValueDb
+  };
+
+  setAnalysisStatus('analyzing…');
+
+  try {
+    let analysis = null;
+    const dspWorker = getDSPWorker();
+    if (dspWorker && dspWorker.isReady) {
+      try {
+        analysis = await dspWorker.analyze(buffer, options);
+      } catch (workerErr) {
+        console.warn('[Analysis] Worker analysis failed, falling back to main thread:', workerErr);
+      }
+    }
+    if (!analysis) {
+      analysis = analyzeTrack(buffer, options);
+    }
+
+    // Ignore stale results (a newer render/analysis started meanwhile)
+    if (thisVersion === analysisVersion) {
+      renderAnalysisPanel(analysis, options);
+    }
+  } catch (err) {
+    console.error('[Analysis] Failed:', err);
+    setAnalysisStatus('');
+  }
 }
 
 // ============================================================================
@@ -2009,10 +2064,11 @@ updateOutputPresetButtons(outputPresets);
 
 updateChecklist();
 
-// Keep idle visualizers crisp on resize (they self-resize while playing)
+// Keep idle visualizers + analysis graph crisp on resize
 window.addEventListener('resize', () => {
-  if (!playerState.isPlaying && document.body.classList.contains('audio-loaded')) {
-    visualizers.drawIdle();
+  if (document.body.classList.contains('audio-loaded')) {
+    if (!playerState.isPlaying) visualizers.drawIdle();
+    redrawAnalysisPanel();
   }
 });
 
