@@ -241,6 +241,15 @@ export function setTargetLufs(value) {
 }
 
 /**
+ * Set the true peak ceiling (updates state + fader display)
+ * @param {number} value - Ceiling in dB
+ */
+export function setCeilingDb(value) {
+  ceilingValueDb = value;
+  if (faders.ceiling) faders.ceiling.setValue(value);
+}
+
+/**
  * Setup EQ preset buttons
  * @param {Object} presets - EQ presets object
  * @param {Function} onEQChange - Callback when EQ changes

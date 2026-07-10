@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Audio Mastering</title>
+  <title>Mastering — Browser Audio Mastering Studio</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
@@ -14,10 +14,15 @@
     <!-- Header Row -->
     <header class="app-header">
       <div class="logo">
-        <div class="logo-icon"><img src="logo-icon.png" alt="Logo"></div>
+        <div class="logo-mark" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M3 12h2l2-7 3 14 3-10 2 5 2-2h4" />
+          </svg>
+        </div>
         <div class="logo-text">
-          <span class="logo-title">Web Audio Mastering</span>
-          <span class="logo-subtitle">Pro Mastering</span>
+          <span class="logo-title">mastering</span>
+          <span class="logo-subtitle">in-browser mastering studio</span>
         </div>
       </div>
       <div class="header-right">
@@ -26,7 +31,7 @@
         </div>
         <label class="tips-toggle">
           <input type="checkbox" id="showTips" checked>
-          <span>Show Tips</span>
+          <span>Tips</span>
         </label>
         <div class="header-export">
           <div class="progress-container hidden" id="progressContainer">
@@ -37,10 +42,16 @@
             <button id="cancelBtn" class="btn-cancel">Cancel</button>
           </div>
           <button id="processBtn" class="btn-process" disabled>
-            <span>🚀</span> Export WAV
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export WAV
           </button>
           <div class="info-wrapper">
-            <button class="btn-info" id="infoBtn">
+            <button class="btn-info" id="infoBtn" aria-label="About">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="16" x2="12" y2="12" />
@@ -50,9 +61,12 @@
             <div class="info-panel">
               <div class="info-panel-title">About</div>
               <div class="info-panel-content">
-                <a href="https://github.com/entrepeneur4lyf/Web-Audio-Mastering" target="_blank">Web Audio Mastering</a>
-                <br>
-                Originally based on <a href="https://github.com/SUP3RMASS1VE/Suno-Song-Remaster" target="_blank">Suno-Song-Remaster</a>
+                All processing runs locally in your browser — nothing is uploaded.
+                <br><br>
+                Based on <a href="https://github.com/entrepeneur4lyf/Web-Audio-Mastering" target="_blank">Web Audio
+                  Mastering</a>,
+                originally <a href="https://github.com/SUP3RMASS1VE/Suno-Song-Remaster"
+                  target="_blank">Suno-Song-Remaster</a>.
                 <br><span class="info-license">Licensed under ISC</span>
               </div>
             </div>
@@ -63,30 +77,57 @@
 
     <!-- Main Content -->
     <main class="main-content">
+      <!-- Landing hero copy (visible until a file is loaded) -->
+      <div class="landing-hero" id="landingHero">
+        <h1>Master your track.<br><span class="hero-accent">Right here, right now.</span></h1>
+        <p class="hero-sub">Streaming-ready masters in your browser. Free, private and instant —
+          your audio never leaves your device.</p>
+      </div>
+
       <!-- File Drop Zone -->
       <div class="file-zone" id="dropZone">
         <div class="file-zone-content" id="fileZoneContent">
-          <div class="drop-icon">📂</div>
-          <p>Drop audio file here or</p>
-          <button id="selectFile" class="btn-select">Browse Files</button>
+          <div class="drop-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </div>
+          <p>Drag &amp; drop your track anywhere</p>
+          <button id="selectFile" class="btn-select">Choose a file</button>
           <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.flac,.aac,.m4a,.mp4" hidden>
-          <span class="file-types">MP3, WAV, FLAC, AAC, M4A, MP4</span>
+          <span class="file-types">MP3 · WAV · FLAC · AAC · M4A · MP4</span>
         </div>
         <div class="file-loaded hidden" id="fileLoaded">
           <div class="file-header">
             <div class="file-info-row">
-              <span class="file-icon">🎵</span>
+              <span class="file-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </span>
               <div class="file-details">
                 <span class="file-name" id="fileName">No file</span>
                 <span class="file-meta" id="fileMeta">--</span>
-                <span class="dc-offset-badge hidden" id="dcOffsetBadge" title="DC offset was detected and removed">DC
-                  Fixed</span>
+                <span class="dc-offset-badge hidden" id="dcOffsetBadge"
+                  title="DC offset was detected and removed">DC Fixed</span>
               </div>
-              <button id="changeFile" class="btn-change">Change</button>
+              <button id="changeFile" class="btn-change">Change track</button>
             </div>
           </div>
           <div class="audio-player">
-            <div id="waveform" class="waveform-container"></div>
+            <div class="waveform-stack" id="waveformStack">
+              <div id="waveform" class="waveform-container"></div>
+              <div class="waveform-legend">
+                <span class="legend-item legend-original"><i></i> Original</span>
+                <span class="legend-item legend-master"><i></i> Master</span>
+              </div>
+            </div>
             <input type="range" id="seekBar" class="seek-bar hidden" min="0" max="100" value="0">
             <div class="transport-row">
               <button id="playBtn" class="transport-btn" disabled title="Play/Pause (Space)">
@@ -114,19 +155,16 @@
               <span id="duration" class="time">0:00</span>
               <div class="transport-spacer"></div>
 
-              <label class="level-match-container" title="Match Level (Preview uses normalized audio)">
+              <label class="level-match-container" title="Match Level (Original preview uses normalized audio)">
                 <input type="checkbox" id="levelMatchBtn" checked>
                 <span>Lvl Match</span>
               </label>
 
-              <button id="bypassBtn" class="transport-btn btn-bypass" title="Toggle Effects">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                </svg>
-                <span class="bypass-label">FX</span>
+              <button id="bypassBtn" class="transport-btn btn-bypass" title="A/B — compare original vs master"
+                data-tip="A/B toggle: switch between the untouched original (A) and your master (B).">
+                <span class="ab-half ab-a">A</span>
+                <span class="ab-half ab-b active-side">B</span>
+                <span class="bypass-label">Master</span>
               </button>
               <button id="spectroBtn" class="transport-btn btn-bypass" title="Toggle Spectrogram">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -161,15 +199,55 @@
             <div class="overload-indicator" id="overloadIndicator">CLIP</div>
           </div>
 
-          <!-- Spectrogram Panel -->
-          <div class="spectrogram-panel hidden" id="spectrogramContainer"
-            style="margin-top: 15px; border-radius: 6px; overflow: hidden; height: 300px; background: #000; border: 1px solid #333;">
+          <!-- Real-time visualizers: spectrum analyzer + stereo field scope -->
+          <div class="visualizer-row">
+            <div class="visualizer-panel spectrum-panel">
+              <div class="visualizer-title">Spectrum</div>
+              <canvas id="spectrumCanvas"></canvas>
+            </div>
+            <div class="visualizer-panel scope-panel">
+              <div class="visualizer-title">Stereo Field</div>
+              <canvas id="scopeCanvas"></canvas>
+              <div class="correlation-meter" data-tip="Phase correlation: +1 mono-safe, 0 wide, below 0 phase issues.">
+                <span class="corr-label">-1</span>
+                <div class="correlation-track">
+                  <div class="correlation-indicator" id="correlationIndicator"></div>
+                </div>
+                <span class="corr-label">+1</span>
+                <span class="corr-value" id="correlationValue">--</span>
+              </div>
+            </div>
           </div>
+
+          <!-- Spectrogram Panel -->
+          <div class="spectrogram-panel hidden" id="spectrogramContainer"></div>
+        </div>
+      </div>
+
+      <!-- Genre starting points -->
+      <div class="genre-card console-only" id="genreCard">
+        <div class="genre-header">
+          <h3>Genre Presets</h3>
+          <span class="genre-hint">One-click starting points — fine-tune below</span>
+        </div>
+        <div class="genre-presets" id="genrePresets">
+          <button class="genre-btn" data-genre="electronic"
+            data-tip="Tight low end, wide highs, club-ready punch. Targets -9 LUFS.">Electronic</button>
+          <button class="genre-btn" data-genre="hiphop"
+            data-tip="Heavy lows, warm mids, hard-hitting drums. Targets -10 LUFS.">Hip-Hop</button>
+          <button class="genre-btn" data-genre="acoustic"
+            data-tip="Natural dynamics, gentle warmth, open top end. Targets -14 LUFS.">Acoustic</button>
+          <button class="genre-btn" data-genre="podcast"
+            data-tip="Voice clarity, level consistency. Targets -16 LUFS.">Podcast</button>
+          <button class="genre-btn" data-genre="loud"
+            data-tip="Maximum impact — pushed level and saturation. Targets -7 LUFS.">Loud</button>
+          <button class="genre-btn" data-genre="streaming"
+            data-tip="Balanced master tuned for platform normalization. Targets -14 LUFS.">Streaming</button>
         </div>
       </div>
 
       <!-- Settings Grid - 4 columns -->
-      <div class="panel-grid">
+      <div class="panel-grid console-only">
         <div class="settings-card">
           <h3>Quick Fix <span class="live-badge">Live</span></h3>
           <label class="toggle-row"
@@ -268,7 +346,7 @@
       </div>
 
       <!-- Loudness + EQ Row -->
-      <div class="eq-row">
+      <div class="eq-row console-only">
         <div class="settings-card loudness-card">
           <h3>Loudness <span class="live-badge">Live</span></h3>
           <div class="loudness-faders">
@@ -320,6 +398,10 @@
       </div>
 
       <div id="statusMessage" class="status-message"></div>
+
+      <footer class="landing-footer" id="landingFooter">
+        <span>All DSP runs client-side · ITU-R BS.1770-4 loudness · True-peak limiting · Lossless WAV export</span>
+      </footer>
     </main>
   </div>
 

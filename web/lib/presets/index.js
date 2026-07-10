@@ -9,3 +9,8 @@ export {
   getPresetNames,
   getPreset
 } from './eq.js';
+
+export {
+  genrePresets,
+  getGenrePreset
+} from './genre.js';

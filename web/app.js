@@ -12,7 +12,7 @@ import {
 } from './lib/dsp/index.js';
 
 // Import presets
-import { eqPresets, outputPresets } from './lib/presets/index.js';
+import { eqPresets, outputPresets, genrePresets } from './lib/presets/index.js';
 
 // Import UI modules
 import {
@@ -29,6 +29,9 @@ import {
   setupOutputPresets,
   updateOutputPresetButtons,
   setTargetLufs,
+  setCeilingDb,
+  applyEQPreset,
+  clearActivePreset,
   // Meters
   meterState,
   startMeter,
@@ -48,7 +51,13 @@ import {
   destroyWaveSurfer,
   updateWaveSurferProgress,
   updateWaveformBuffer,
-  showOriginalWaveform
+  showOriginalWaveform,
+  // Visualizers (spectrum + stereo scope)
+  visualizers,
+  // Before/after ghost overlay
+  mountGhost,
+  setGhostBuffer,
+  clearGhost
 } from './ui/index.js';
 
 let currentFile = null; // Store the currently selected File object (browser)
@@ -205,9 +214,11 @@ function updateDitherControlState() {
 }
 
 async function cleanupAudioContext() {
-  // Stop spectrogram
+  // Stop spectrogram + visualizers
   spectrogram.stop();
   spectrogram.analyser = null;
+  visualizers.stop();
+  clearGhost();
 
   // Destroy WaveSurfer first - it may hold references to AudioContext
   destroyWaveSurfer();
@@ -255,6 +266,9 @@ function createAudioChain() {
     spectrogram.start();
   }
 
+  // Connect real-time visualizers (spectrum + stereo scope)
+  visualizers.connect(audioNodes.analyser, null, null);
+
   audioNodes.analyserL = ctx.createAnalyser();
   audioNodes.analyserL.fftSize = 2048;
   audioNodes.analyserR = ctx.createAnalyser();
@@ -264,6 +278,10 @@ function createAudioChain() {
   // Static connections for stereo metering
   audioNodes.meterSplitter.connect(audioNodes.analyserL, 0);
   audioNodes.meterSplitter.connect(audioNodes.analyserR, 1);
+
+  // Stereo scope reads the same L/R analysers as the meter
+  visualizers.connect(null, audioNodes.analyserL, audioNodes.analyserR);
+  visualizers.drawIdle();
 
   // Direct path metering (bypass): keep a single up-mix node to avoid leaking nodes on each play
   audioNodes.directMeterUpmix = ctx.createGain();
@@ -730,6 +748,7 @@ function scheduleRenderToCache() {
  */
 function startMeterAnimation() {
   startMeter(audioNodes.analyserL, audioNodes.analyserR, () => playerState.isPlaying);
+  visualizers.start(() => playerState.isPlaying);
 }
 
 /**
@@ -900,6 +919,10 @@ async function loadAudioFile(file) {
       },
       getBuffer: () => audioNodes.buffer
     });
+
+    // Before/after overlay: draw the original waveform as a ghost behind the master
+    mountGhost('waveformStack');
+    setGhostBuffer(fileState.originalBuffer);
 
     // Keep play button disabled until cache render completes
     // processBtn can be enabled now
@@ -1234,18 +1257,26 @@ async function loadFile(file) {
   }
 }
 
-// Drag and drop
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('drag-over');
+// Drag and drop — the whole window is a drop target (LANDR-style landing)
+['dragenter', 'dragover'].forEach(evt => {
+  document.addEventListener(evt, (e) => {
+    e.preventDefault();
+    document.body.classList.add('dragging');
+    dropZone.classList.add('drag-over');
+  });
 });
 
-dropZone.addEventListener('dragleave', () => {
-  dropZone.classList.remove('drag-over');
+document.addEventListener('dragleave', (e) => {
+  // Only clear when leaving the window entirely
+  if (!e.relatedTarget) {
+    document.body.classList.remove('dragging');
+    dropZone.classList.remove('drag-over');
+  }
 });
 
-dropZone.addEventListener('drop', async (e) => {
+document.addEventListener('drop', async (e) => {
   e.preventDefault();
+  document.body.classList.remove('dragging');
   dropZone.classList.remove('drag-over');
 
   const file = e.dataTransfer.files[0];
@@ -1254,6 +1285,13 @@ dropZone.addEventListener('drop', async (e) => {
     playerState.pauseTime = 0;
     await loadFile(file); // Pass File object directly in browser
   }
+});
+
+// On the landing page, the whole drop card is clickable
+dropZone.addEventListener('click', (e) => {
+  if (document.body.classList.contains('audio-loaded')) return;
+  if (e.target.closest('#selectFile')) return; // button has its own handler
+  fileInput.click();
 });
 
 // ============================================================================
@@ -1287,8 +1325,10 @@ bypassBtn.addEventListener('click', () => {
   playerState.isBypassed = !playerState.isBypassed;
   const bypassLabel = bypassBtn.querySelector('.bypass-label');
   if (bypassLabel) {
-    bypassLabel.textContent = playerState.isBypassed ? 'OFF' : 'FX';
+    bypassLabel.textContent = playerState.isBypassed ? 'Original' : 'Master';
   }
+  bypassBtn.querySelector('.ab-a')?.classList.toggle('active-side', playerState.isBypassed);
+  bypassBtn.querySelector('.ab-b')?.classList.toggle('active-side', !playerState.isBypassed);
   bypassBtn.classList.toggle('active', playerState.isBypassed);
 
   console.log('[Bypass] Toggled to:', playerState.isBypassed ? 'OFF (original)' : 'FX ON (processed)');
@@ -1798,6 +1838,63 @@ initFaders({
 // Setup EQ presets with callback
 setupEQPresets(eqPresets, updateEQ);
 
+// ============================================================================
+// Genre Presets
+// ============================================================================
+
+function applyGenrePreset(name) {
+  const preset = genrePresets[name];
+  if (!preset) return;
+
+  // Module toggles
+  Object.entries(preset.toggles).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = value;
+  });
+
+  // EQ curve (updates faders + eqValues state)
+  applyEQPreset(preset.eq, updateEQ);
+  clearActivePreset(); // custom curve — no EQ preset button active
+
+  // Stereo width
+  stereoWidthSlider.value = preset.stereoWidth;
+  stereoWidthValue.textContent = `${preset.stereoWidth}%`;
+
+  // Loudness targets
+  setCeilingDb(preset.ceiling);
+  targetLufsSlider.value = preset.targetLufs;
+  setTargetLufs(preset.targetLufs);
+  targetLufsValue.textContent = `${preset.targetLufs} LUFS`;
+
+  // Button highlight
+  document.querySelectorAll('.genre-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.genre === name);
+  });
+
+  // Push everything into the live chain + schedule a cache re-render
+  updateInputGain();
+  updateEQ();
+  updateStereoWidth();
+  updateDitherControlState();
+
+  if (fileState.originalBuffer) {
+    if (normalizeLoudness.checked) {
+      // Re-normalizes to the new target, then re-runs effects + cache render
+      renormalizeAudio(preset.targetLufs);
+    } else {
+      processEffects();
+    }
+  }
+  updateAudioChain();
+  updateChecklist();
+
+  showToast(`${preset.label} preset applied — fine-tune below`, 'success', 3500);
+}
+
+document.querySelectorAll('.genre-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyGenrePreset(btn.dataset.genre));
+});
+
 // Setup output format presets
 setupOutputPresets(outputPresets, () => {
   updateDitherControlState();
@@ -1807,6 +1904,13 @@ updateDitherControlState();
 updateOutputPresetButtons(outputPresets);
 
 updateChecklist();
+
+// Keep idle visualizers crisp on resize (they self-resize while playing)
+window.addEventListener('resize', () => {
+  if (!playerState.isPlaying && document.body.classList.contains('audio-loaded')) {
+    visualizers.drawIdle();
+  }
+});
 
 // Initialize DSP worker for off-main-thread processing
 initDSPWorker().then(() => {

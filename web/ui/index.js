@@ -9,3 +9,5 @@ export * from './transport.js';
 export * from './encoder.js';
 export * from './renderer.js';
 export * from './waveform.js';
+export * from './visualizers.js';
+export * from './ab-overlay.js';

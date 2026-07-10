@@ -16,6 +16,7 @@ import {
   applyBiquadFilter,
   calcHighShelfCoeffs,
   calcHighPassCoeffs,
+  applyEqBandToBuffer,
   dbToLinear,
   // Full chain DSP functions
   measureLUFS,
@@ -1235,32 +1236,32 @@ function applyParametricEQ(buffer, settings) {
 
   // 1. Low Shelf (80Hz)
   if (eqValues.low !== 0) {
-    outBuffer = applyBiquadFilter(outBuffer, 'lowshelf', 80, eqValues.low, 1.0, sampleRate);
+    outBuffer = applyEqBandToBuffer(outBuffer, 'lowshelf', 80, eqValues.low, 1.0);
   }
 
   // 2. Low Mid (250Hz)
   if (eqValues.lowMid !== 0) {
-    outBuffer = applyBiquadFilter(outBuffer, 'peaking', 250, eqValues.lowMid, 1.0, sampleRate);
+    outBuffer = applyEqBandToBuffer(outBuffer, 'peaking', 250, eqValues.lowMid, 1.0);
   }
 
   // 3. Mid (1kHz)
   if (eqValues.mid !== 0) {
-    outBuffer = applyBiquadFilter(outBuffer, 'peaking', 1000, eqValues.mid, 1.0, sampleRate);
+    outBuffer = applyEqBandToBuffer(outBuffer, 'peaking', 1000, eqValues.mid, 1.0);
   }
 
   // 4. High Mid (4kHz)
   if (eqValues.highMid !== 0) {
-    outBuffer = applyBiquadFilter(outBuffer, 'peaking', 4000, eqValues.highMid, 1.0, sampleRate);
+    outBuffer = applyEqBandToBuffer(outBuffer, 'peaking', 4000, eqValues.highMid, 1.0);
   }
 
   // 5. High Shelf (12kHz)
   if (eqValues.high !== 0) {
-    outBuffer = applyBiquadFilter(outBuffer, 'highshelf', 12000, eqValues.high, 1.0, sampleRate);
+    outBuffer = applyEqBandToBuffer(outBuffer, 'highshelf', 12000, eqValues.high, 1.0);
   }
 
   // 6. Cut Mud (250Hz, -3dB, Q=1.5)
   if (settings.cutMud) {
-    outBuffer = applyBiquadFilter(outBuffer, 'peaking', 250, -3.0, 1.5, sampleRate);
+    outBuffer = applyEqBandToBuffer(outBuffer, 'peaking', 250, -3.0, 1.5);
   }
 
   return outBuffer;
