@@ -5,13 +5,13 @@
 export const controlTheme = {
   // Functional colors for different control purposes
   functional: {
-    gain: '#22c55e',
-    filter: '#f59e0b',
+    gain: '#1793d1',
+    filter: '#e5c07b',
     time: '#3b82f6',
-    mix: '#a78bfa',
-    pan: '#22d3ee',
-    meter: '#22c55e',
-    reduction: '#ef4444',
+    mix: '#4fb3e8',
+    pan: '#5fd7ff',
+    meter: '#8fbf5f',
+    reduction: '#e06c75',
   },
 
   text: {

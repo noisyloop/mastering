@@ -7,6 +7,8 @@
   <title>Mastering — Browser Audio Mastering Studio</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="referrer" content="no-referrer">
 </head>
 
 <body>
@@ -21,7 +23,7 @@
           </svg>
         </div>
         <div class="logo-text">
-          <span class="logo-title">mastering</span>
+          <span class="logo-title"><span class="prompt-user">mastering</span><span class="prompt-path">:~$</span></span>
           <span class="logo-subtitle">in-browser mastering studio</span>
         </div>
       </div>
@@ -62,12 +64,7 @@
               <div class="info-panel-title">About</div>
               <div class="info-panel-content">
                 All processing runs locally in your browser — nothing is uploaded.
-                <br><br>
-                Based on <a href="https://github.com/entrepeneur4lyf/Web-Audio-Mastering" target="_blank">Web Audio
-                  Mastering</a>,
-                originally <a href="https://github.com/SUP3RMASS1VE/Suno-Song-Remaster"
-                  target="_blank">Suno-Song-Remaster</a>.
-                <br><span class="info-license">Licensed under ISC</span>
+                <br><span class="info-license">ISC license</span>
               </div>
             </div>
           </div>
@@ -79,6 +76,7 @@
     <main class="main-content">
       <!-- Landing hero copy (visible until a file is loaded) -->
       <div class="landing-hero" id="landingHero">
+        <div class="hero-prompt"><b>$</b> mastering --input your-track.wav --target streaming</div>
         <h1>Master your track.<br><span class="hero-accent">Right here, right now.</span></h1>
         <p class="hero-sub">Streaming-ready masters in your browser. Free, private and instant —
           your audio never leaves your device.</p>

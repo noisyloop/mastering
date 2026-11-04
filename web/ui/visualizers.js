@@ -72,14 +72,14 @@ export class SpectrumAnalyzer {
     this.analyser.getFloatFrequencyData(this.freqData);
 
     // Background
-    ctx.fillStyle = '#0b0b12';
+    ctx.fillStyle = '#11141a';
     ctx.fillRect(0, 0, width, height);
 
     // Grid
     ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.fillStyle = 'rgba(255,255,255,0.28)';
     ctx.lineWidth = 1;
-    ctx.font = `${Math.max(9, Math.round(height * 0.055))}px system-ui, sans-serif`;
+    ctx.font = `${Math.max(9, Math.round(height * 0.055))}px 'JetBrains Mono', 'DejaVu Sans Mono', ui-monospace, monospace`;
     ctx.textAlign = 'left';
     const gridFreqs = [50, 100, 200, 500, 1000, 2000, 5000, 10000];
     for (const f of gridFreqs) {
@@ -123,9 +123,9 @@ export class SpectrumAnalyzer {
 
     // Filled spectrum
     const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, 'rgba(139, 127, 245, 0.85)');
-    gradient.addColorStop(0.6, 'rgba(139, 127, 245, 0.35)');
-    gradient.addColorStop(1, 'rgba(139, 127, 245, 0.05)');
+    gradient.addColorStop(0, 'rgba(23, 147, 209, 0.85)');
+    gradient.addColorStop(0.6, 'rgba(23, 147, 209, 0.35)');
+    gradient.addColorStop(1, 'rgba(23, 147, 209, 0.05)');
     ctx.beginPath();
     ctx.moveTo(points[0].x, height);
     for (const p of points) ctx.lineTo(p.x, p.y);
@@ -138,7 +138,7 @@ export class SpectrumAnalyzer {
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     for (const p of points) ctx.lineTo(p.x, p.y);
-    ctx.strokeStyle = 'rgba(186, 178, 255, 0.9)';
+    ctx.strokeStyle = 'rgba(120, 200, 240, 0.95)';
     ctx.lineWidth = Math.max(1, width / 800);
     ctx.stroke();
 
@@ -161,7 +161,7 @@ export class SpectrumAnalyzer {
         if (first) { ctx.moveTo(x, y); first = false; }
         else ctx.lineTo(x, y);
       }
-      ctx.strokeStyle = 'rgba(34, 211, 238, 0.75)';
+      ctx.strokeStyle = 'rgba(95, 215, 255, 0.75)';
       ctx.lineWidth = Math.max(1, width / 900);
       ctx.setLineDash([6, 4]);
       ctx.stroke();
@@ -172,10 +172,10 @@ export class SpectrumAnalyzer {
   drawIdle() {
     if (!this.ctx) return;
     const { width, height } = setupCanvas(this.canvas);
-    this.ctx.fillStyle = '#0b0b12';
+    this.ctx.fillStyle = '#11141a';
     this.ctx.fillRect(0, 0, width, height);
     this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    this.ctx.font = `${Math.max(10, Math.round(height * 0.07))}px system-ui, sans-serif`;
+    this.ctx.font = `${Math.max(10, Math.round(height * 0.07))}px 'JetBrains Mono', 'DejaVu Sans Mono', ui-monospace, monospace`;
     this.ctx.textAlign = 'center';
     this.ctx.fillText('SPECTRUM', width / 2, height / 2);
   }
@@ -214,7 +214,7 @@ export class StereoScope {
     this.analyserR.getFloatTimeDomainData(this.dataR);
 
     // Fade previous frame for a phosphor-style trail
-    ctx.fillStyle = 'rgba(11, 11, 18, 0.35)';
+    ctx.fillStyle = 'rgba(17, 20, 26, 0.35)';
     ctx.fillRect(0, 0, width, height);
 
     const cx = width / 2;
@@ -231,7 +231,7 @@ export class StereoScope {
     ctx.stroke();
 
     // Plot samples: x = side, y = mid (rotated 45° Lissajous)
-    ctx.fillStyle = 'rgba(139, 127, 245, 0.55)';
+    ctx.fillStyle = 'rgba(23, 147, 209, 0.55)';
     const n = this.dataL.length;
     const step = Math.max(1, Math.floor(n / 1024));
     let sumLR = 0, sumL2 = 0, sumR2 = 0;
@@ -266,10 +266,10 @@ export class StereoScope {
   drawIdle() {
     if (!this.ctx) return;
     const { width, height } = setupCanvas(this.canvas);
-    this.ctx.fillStyle = '#0b0b12';
+    this.ctx.fillStyle = '#11141a';
     this.ctx.fillRect(0, 0, width, height);
     this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    this.ctx.font = `${Math.max(10, Math.round(height * 0.07))}px system-ui, sans-serif`;
+    this.ctx.font = `${Math.max(10, Math.round(height * 0.07))}px 'JetBrains Mono', 'DejaVu Sans Mono', ui-monospace, monospace`;
     this.ctx.textAlign = 'center';
     this.ctx.fillText('STEREO', width / 2, height / 2);
   }

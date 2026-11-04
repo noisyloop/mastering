@@ -48,14 +48,14 @@ export function initWaveSurfer(audioBuffer, originalBlob, callbacks = {}) {
     // Create gradient
     const ctx = document.createElement('canvas').getContext('2d');
     const waveGradient = ctx.createLinearGradient(0, 0, 0, 80);
-    waveGradient.addColorStop(0, 'rgba(188, 177, 231, 0.8)');
-    waveGradient.addColorStop(0.5, 'rgba(154, 143, 209, 0.6)');
-    waveGradient.addColorStop(1, 'rgba(100, 90, 160, 0.3)');
+    waveGradient.addColorStop(0, 'rgba(150, 215, 250, 0.95)');
+    waveGradient.addColorStop(0.5, 'rgba(60, 170, 225, 0.8)');
+    waveGradient.addColorStop(1, 'rgba(23, 147, 209, 0.45)');
 
     const progressGradient = ctx.createLinearGradient(0, 0, 0, 80);
-    progressGradient.addColorStop(0, '#BCB1E7');
-    progressGradient.addColorStop(0.5, '#9A8FD1');
-    progressGradient.addColorStop(1, '#7A6FB1');
+    progressGradient.addColorStop(0, '#9fdcff');
+    progressGradient.addColorStop(0.5, '#4fb3e8');
+    progressGradient.addColorStop(1, '#1793d1');
 
     // Create blob URL for WaveSurfer (tracked for cleanup)
     // Store as both current and original so we can switch back on FX bypass
@@ -219,8 +219,8 @@ function setupWaveformHover(duration) {
   label.style.cssText = `
     position: absolute;
     top: 2px;
-    background: #1a1a1a;
-    color: #BCB1E7;
+    background: #12151a;
+    color: #4fb3e8;
     font-size: 11px;
     padding: 2px 4px;
     border-radius: 2px;

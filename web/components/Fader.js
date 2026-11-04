@@ -163,7 +163,7 @@ export class Fader {
       position: 'absolute',
       width: `${thumbSize.w}px`,
       height: `${thumbSize.h}px`,
-      background: `linear-gradient(${isVertical ? '180deg' : '90deg'}, #666, #444)`,
+      background: `linear-gradient(${isVertical ? '180deg' : '90deg'}, #3a4350, #262c35)`,
       borderRadius: '2px',
       cursor: this._thumbCursor,
       boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
@@ -183,20 +183,20 @@ export class Fader {
       position: 'absolute',
       top: '50%',
       left: '50%',
-      background: '#222',
+      background: '#12151a',
       transform: 'translate(-50%, -50%)',
     });
     if (isVertical) {
       Object.assign(grip.style, {
         width: '12px',
         height: '1px',
-        boxShadow: '0 2px 0 #222, 0 -2px 0 #222',
+        boxShadow: '0 2px 0 #12151a, 0 -2px 0 #12151a',
       });
     } else {
       Object.assign(grip.style, {
         width: '1px',
         height: '12px',
-        boxShadow: '2px 0 0 #222, -2px 0 0 #222',
+        boxShadow: '2px 0 0 #12151a, -2px 0 0 #12151a',
       });
     }
     thumb.appendChild(grip);

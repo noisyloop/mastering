@@ -149,6 +149,8 @@ const selectFileBtn = document.getElementById('selectFile');
 const changeFileBtn = document.getElementById('changeFile');
 const fileZoneContent = document.getElementById('fileZoneContent');
 const fileLoaded = document.getElementById('fileLoaded');
+const playBtn = document.getElementById('playBtn');
+const stopBtn = document.getElementById('stopBtn');
 const fileName = document.getElementById('fileName');
 const fileMeta = document.getElementById('fileMeta');
 const dcOffsetBadge = document.getElementById('dcOffsetBadge');
@@ -188,6 +190,16 @@ const targetLufsSlider = document.getElementById('targetLufs');
 const targetLufsValue = document.getElementById('targetLufsValue');
 const stereoWidthSlider = document.getElementById('stereoWidth');
 const stereoWidthValue = document.getElementById('stereoWidthValue');
+// Declared explicitly — previously these resolved via implicit window[id] globals
+const bypassBtn = document.getElementById('bypassBtn');
+const glueCompression = document.getElementById('glueCompression');
+const deharsh = document.getElementById('deharsh');
+const cleanLowEnd = document.getElementById('cleanLowEnd');
+const autoLevel = document.getElementById('autoLevel');
+const addPunch = document.getElementById('addPunch');
+const cutMud = document.getElementById('cutMud');
+const truePeakLimit = document.getElementById('truePeakLimit');
+const centerBass = document.getElementById('centerBass');
 const outputLufsDisplay = document.getElementById('outputLufs');
 
 // Transport display elements
@@ -1251,10 +1263,53 @@ fileInput.addEventListener('change', async (e) => {
   fileInput.value = '';
 });
 
+const SUPPORTED_AUDIO_EXT = /\.(mp3|wav|flac|aac|m4a|mp4)$/i;
+// Decoded PCM is ~10x larger than a compressed file; beyond this the tab is
+// likely to run out of memory, so refuse up front with a clear message.
+const MAX_FILE_BYTES = 1024 * 1024 * 1024; // 1 GB
+
+function validateAudioFile(file) {
+  if (!file) return 'No file selected.';
+  if (!SUPPORTED_AUDIO_EXT.test(file.name) && !(file.type || '').startsWith('audio/')) {
+    return 'Unsupported file type — use MP3, WAV, FLAC, AAC, M4A or MP4.';
+  }
+  if (file.size === 0) return 'File is empty.';
+  if (file.size > MAX_FILE_BYTES) return 'File is too large (max 1 GB).';
+  return null;
+}
+
+/**
+ * Return the UI to the landing state. Used when a load fails after the
+ * previous track's AudioContext was already torn down, so the console
+ * never stays visible over null audio nodes.
+ */
+function resetToLanding() {
+  document.body.classList.remove('audio-loaded');
+  fileZoneContent.classList.remove('hidden');
+  fileLoaded.classList.add('hidden');
+  playBtn.disabled = true;
+  stopBtn.disabled = true;
+  processBtn.disabled = true;
+  currentFile = null;
+  fileState.originalBuffer = null;
+  fileState.normalizedBuffer = null;
+  fileState.cachedRenderBuffer = null;
+  fileState.cachedRenderLufs = null;
+  fileState.cacheRenderVersion++;
+  playerState.pauseTime = 0;
+  updateChecklist();
+}
+
 async function loadFile(file) {
   // Prevent loading while export is in progress
   if (isProcessing) {
     showToast('Cannot load file while processing', 'error');
+    return false;
+  }
+
+  const invalid = validateAudioFile(file);
+  if (invalid) {
+    showToast(invalid, 'error');
     return false;
   }
 
@@ -1281,7 +1336,9 @@ async function loadFile(file) {
       // Estimate bitrate from file size (for compressed formats)
       const fileSizeBytes = file.size;
       const durationSecs = audioNodes.buffer.duration;
-      const estimatedBitrate = Math.round((fileSizeBytes * 8) / (durationSecs * 1000)); // kbps
+      const estimatedBitrate = durationSecs > 0
+        ? Math.round((fileSizeBytes * 8) / (durationSecs * 1000)) // kbps
+        : '--';
 
       fileName.textContent = name;
       // Format: {type} • {bitrate} • {sample-rate} • {LUFS} • {dBTP} • {length}
@@ -1312,9 +1369,11 @@ async function loadFile(file) {
       updateChecklist();
       return true;
     }
+    resetToLanding();
     return false;
   } catch (error) {
     console.error('Error in loadFile:', error);
+    resetToLanding();
     showToast(`Failed to load file: ${error.message}`, 'error');
     return false;
   }
@@ -1342,12 +1401,20 @@ document.addEventListener('drop', async (e) => {
   document.body.classList.remove('dragging');
   dropZone.classList.remove('drag-over');
 
-  const file = e.dataTransfer.files[0];
-  if (file && /\.(mp3|wav|flac|aac|m4a|mp4)$/i.test(file.name)) {
-    stopAudio();
-    playerState.pauseTime = 0;
-    await loadFile(file); // Pass File object directly in browser
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+  const invalid = validateAudioFile(file);
+  if (invalid) {
+    showToast(invalid, 'error');
+    return;
   }
+  if (isProcessing) {
+    showToast('Cannot load file while processing', 'error');
+    return;
+  }
+  stopAudio();
+  playerState.pauseTime = 0;
+  await loadFile(file); // Pass File object directly in browser
 });
 
 // On the landing page, the whole drop card is clickable
@@ -1774,13 +1841,18 @@ const tooltip = document.getElementById('tooltip');
 const showTipsCheckbox = document.getElementById('showTips');
 let tooltipTimeout = null;
 
-const savedTipsPref = localStorage.getItem('showTips');
+let savedTipsPref = null;
+try {
+  savedTipsPref = localStorage.getItem('showTips');
+} catch (e) { /* storage blocked — use default */ }
 if (savedTipsPref !== null) {
   showTipsCheckbox.checked = savedTipsPref === 'true';
 }
 
 showTipsCheckbox.addEventListener('change', () => {
-  localStorage.setItem('showTips', showTipsCheckbox.checked);
+  try {
+    localStorage.setItem('showTips', String(showTipsCheckbox.checked));
+  } catch (e) { /* storage blocked — preference is per-session only */ }
   if (!showTipsCheckbox.checked) {
     tooltip.classList.remove('visible');
   }
@@ -1995,6 +2067,11 @@ function recomputeMatchBands() {
 }
 
 async function loadReferenceFile(file) {
+  const invalid = validateAudioFile(file);
+  if (invalid) {
+    showToast(invalid, 'error');
+    return;
+  }
   try {
     showToast(`Analyzing reference "${file.name}"...`, '', 0);
     const ctx = initAudioContext();

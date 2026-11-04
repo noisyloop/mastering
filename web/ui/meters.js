@@ -134,7 +134,7 @@ export function drawMeter() {
   const channelHeight = height / 2 - 1;
 
   // Clear canvas
-  meterCtx.fillStyle = '#0a0a0a';
+  meterCtx.fillStyle = '#0b0d10';
   meterCtx.fillRect(0, 0, width, height);
 
   // Draw each channel
@@ -145,12 +145,12 @@ export function drawMeter() {
 
     // Create gradient
     const gradient = meterCtx.createLinearGradient(0, 0, width, 0);
-    gradient.addColorStop(0, '#22c55e');           // Green
-    gradient.addColorStop(0.75, '#22c55e');        // Green until -12dB
-    gradient.addColorStop(0.75, '#eab308');        // Yellow
-    gradient.addColorStop(0.875, '#eab308');       // Yellow until -6dB
-    gradient.addColorStop(0.875, '#ef4444');       // Red
-    gradient.addColorStop(1, '#ef4444');           // Red
+    gradient.addColorStop(0, '#8fbf5f');           // Green
+    gradient.addColorStop(0.75, '#8fbf5f');        // Green until -12dB
+    gradient.addColorStop(0.75, '#e5c07b');        // Yellow
+    gradient.addColorStop(0.875, '#e5c07b');       // Yellow until -6dB
+    gradient.addColorStop(0.875, '#e06c75');       // Red
+    gradient.addColorStop(1, '#e06c75');           // Red
 
     // Draw level bar
     const levelWidth = Math.max(0, ((level - dbStart) / dbRange) * width);
