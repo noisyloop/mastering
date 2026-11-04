@@ -2,6 +2,15 @@
 
 A browser-based audio mastering studio. Drop in a track, shape it with a full mastering chain, and export a streaming-ready WAV — all DSP runs client-side in the Web Audio API. No server, no upload.
 
+![mastering console: waveform, spectrum, stereo field, LUFS analysis and the full mastering chain](docs/screenshot.png)
+
+<details>
+<summary>Landing page</summary>
+
+![mastering landing page](docs/screenshot-landing.png)
+
+</details>
+
 ## Features
 
 ### Workflow
@@ -38,6 +47,13 @@ npm run e2e      # browser smoke test (requires `npm run preview` running)
 ```
 
 Deploys as a fully static site (Vercel, Cloudflare Pages, GitHub Pages, etc.).
+
+## Security
+
+- No server and no network calls: audio is decoded, processed and encoded entirely in the browser.
+- The production build ships a strict Content-Security-Policy (`<meta>` tag injected by `vite.config.js`): same-origin scripts only, no plugins, no form posts.
+- `frame-ancestors` can't be set from a `<meta>` tag. To block framing, send `Content-Security-Policy: frame-ancestors 'none'` (or `X-Frame-Options: DENY`) as a header from your host.
+- Uploaded files are checked for type and size (max 1 GB) before decoding.
 
 ## Tech stack
 

@@ -86,7 +86,7 @@ function drawLufsGraph(analysis, options) {
   const height = canvas.height;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = '#0b0b12';
+  ctx.fillStyle = '#11141a';
   ctx.fillRect(0, 0, width, height);
 
   const { momentary, shortTerm, integrated } = analysis.loudness;
@@ -112,7 +112,7 @@ function drawLufsGraph(analysis, options) {
   ctx.strokeStyle = 'rgba(255,255,255,0.07)';
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
   ctx.lineWidth = 1;
-  ctx.font = `${Math.round(9 * dpr)}px system-ui, sans-serif`;
+  ctx.font = `${Math.round(9 * dpr)}px 'JetBrains Mono', 'DejaVu Sans Mono', ui-monospace, monospace`;
   ctx.textAlign = 'right';
   for (let db = yMax - 4; db > yMin; db -= 6) {
     const y = yOf(db);
@@ -137,8 +137,8 @@ function drawLufsGraph(analysis, options) {
   ctx.lineTo(xOf(momentary[momentary.length - 1].t), yOf(yMin));
   ctx.closePath();
   const grad = ctx.createLinearGradient(0, pad.t, 0, height - pad.b);
-  grad.addColorStop(0, 'rgba(139, 127, 245, 0.55)');
-  grad.addColorStop(1, 'rgba(139, 127, 245, 0.06)');
+  grad.addColorStop(0, 'rgba(23, 147, 209, 0.55)');
+  grad.addColorStop(1, 'rgba(23, 147, 209, 0.06)');
   ctx.fillStyle = grad;
   ctx.fill();
 
@@ -152,7 +152,7 @@ function drawLufsGraph(analysis, options) {
       if (first) { ctx.moveTo(x, y); first = false; }
       else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = 'rgba(34, 211, 238, 0.9)';
+    ctx.strokeStyle = 'rgba(95, 215, 255, 0.9)';
     ctx.lineWidth = Math.max(1, 1.4 * dpr);
     ctx.stroke();
   }
@@ -175,7 +175,7 @@ function drawLufsGraph(analysis, options) {
     ctx.setLineDash([2 * dpr, 4 * dpr]);
     ctx.moveTo(pad.l, yOf(options.targetLufs));
     ctx.lineTo(width - pad.r, yOf(options.targetLufs));
-    ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
+    ctx.strokeStyle = 'rgba(143, 191, 95, 0.85)';
     ctx.lineWidth = 1 * dpr;
     ctx.stroke();
     ctx.setLineDash([]);

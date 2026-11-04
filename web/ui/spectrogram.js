@@ -58,7 +58,7 @@ export class Spectrogram {
         this.canvas.style.width = '100%';
         this.canvas.style.height = '100%';
         this.canvas.style.display = 'block';
-        this.canvas.style.backgroundColor = '#111';
+        this.canvas.style.backgroundColor = '#0b0d10';
 
         this.ctx = this.canvas.getContext('2d', { alpha: false });
 
@@ -299,7 +299,7 @@ export class Spectrogram {
         const h = this.canvas.height;
 
         // Draw background
-        this.ctx.fillStyle = '#111';
+        this.ctx.fillStyle = '#0b0d10';
         this.ctx.fillRect(0, 0, w, h);
 
         // Put temp image data
@@ -312,7 +312,7 @@ export class Spectrogram {
         this.ctx.strokeStyle = '#444';
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = '#888';
-        this.ctx.font = '12px Inter, sans-serif';
+        this.ctx.font = "11px 'JetBrains Mono', 'DejaVu Sans Mono', ui-monospace, monospace";
         this.ctx.textAlign = 'right';
 
         const gridFreqs = [100, 200, 500, 1000, 2000, 5000, 10000, 20000];

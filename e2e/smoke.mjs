@@ -163,6 +163,23 @@ check('integrated stat populated', /-?\d/.test(await page.textContent('#statLufs
 check('LUFS graph drawn', await canvasDrawn('lufsGraph') > 5);
 check('feedback items present', await page.locator('.feedback-item').count() > 0);
 
+console.log('failed load recovers');
+// A corrupt file after a good one used to leave the console visible over a
+// closed AudioContext. It should fall back to the landing state instead.
+const badPath = join(dir, 'broken.wav');
+writeFileSync(badPath, Buffer.from('RIFF....WAVEnot really audio'));
+const errorsBefore = errors.length;
+await page.setInputFiles('#fileInput', badPath);
+await page.waitForFunction(() => !document.body.classList.contains('audio-loaded'), null, { timeout: 30000 });
+check('back on landing', await page.isVisible('#landingHero'));
+check('play disabled', await page.isDisabled('#playBtn'));
+check('error toast shown', /error/i.test(await page.textContent('#statusMessage')));
+errors.splice(errorsBefore); // the decode failure is logged on purpose
+await page.setInputFiles('#fileInput', trackPath);
+await page.waitForSelector('body.audio-loaded', { timeout: 30000 });
+await waitRendered();
+check('good file loads again', !(await page.isDisabled('#playBtn')));
+
 await browser.close();
 
 console.log(`\nconsole/page errors: ${errors.length}`);
